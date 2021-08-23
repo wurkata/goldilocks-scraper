@@ -7,7 +7,6 @@ import yaml
 import csv
 import kubernetes as k8s
 import pandas as pd
-import numpy as np
 
 from bs4 import BeautifulSoup
 from nested_dict import nested_dict
