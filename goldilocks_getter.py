@@ -7,6 +7,7 @@ import yaml
 import csv
 import kubernetes as k8s
 import pandas as pd
+import numpy as np
 
 from bs4 import BeautifulSoup
 from nested_dict import nested_dict
@@ -80,6 +81,14 @@ def setup_args():
     args = parser.parse_args()
 
     return args
+
+
+def convert_to_mebi(res_value: str) -> str:
+    if bool(re.match("[0-9]+Gi", res_value)):
+        return print(f"{int(re.sub(r'[A-z]', '', res_value))*1024}Mi")
+    else:
+        print(f'Failed converting {res_value} to Mi')
+        return res_value
 
 
 def get_namespaces(cluster: str, namespace: str) -> List[str]:
@@ -397,11 +406,14 @@ def make_dataframe(
         columns=cpu_columns,
         dtype=int
     )
+    cpu_df['millicores'] = cpu_df['millicores'].astype(int)
+
     memory_df = pd.DataFrame(
         memory_values,
         columns=memory_columns,
         dtype=int
     )
+    memory_df['size'] = memory_df['size'].astype(int)
 
     return cpu_df, memory_df
 
@@ -646,8 +658,8 @@ def export_csv(filename: str, namespace, resources: dict):
                 cur_cpu = v['resources']['current']['requests']['cpu'].strip("m")
                 rec_cpu = v['resources']['recommendations']['requests']['cpu'].strip("m")
                 diff_cpu = rec_cpu - cur_cpu
-                cur_mem = v['resources']['current']['requests']['memory'].strip("Mi")
-                rec_mem = v['resources']['recommendations']['requests']['memory'].strip("Mi")
+                cur_mem = convert_to_mebi(v['resources']['current']['requests']['memory']).strip("Mi")
+                rec_mem = convert_to_mebi(v['resources']['recommendations']['requests']['memory']).strip("Mi")
                 diff_memory = rec_memory - cur_memory
             except:
                 rec_cpu = 0
