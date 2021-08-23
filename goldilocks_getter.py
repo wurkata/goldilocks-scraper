@@ -85,6 +85,8 @@ def setup_args():
 def convert_to_mebi(res_value: str) -> str:
     if bool(re.match("[0-9]+Gi", res_value)):
         return print(f"{int(re.sub(r'[A-z]', '', res_value))*1024}Mi")
+    if bool(re.match("[0-9]+Mi", res_value)):
+        return res_value
     else:
         print(f'Failed converting {res_value} to Mi')
         return res_value
@@ -653,20 +655,18 @@ def export_csv(filename: str, namespace, resources: dict):
         dw.writeheader()
 
         for k, v in resources.items():
-            try:
-                cur_cpu = v['resources']['current']['requests']['cpu'].strip("m")
-                rec_cpu = v['resources']['recommendations']['requests']['cpu'].strip("m")
-                diff_cpu = rec_cpu - cur_cpu
-                cur_mem = convert_to_mebi(v['resources']['current']['requests']['memory']).strip("Mi")
-                rec_mem = convert_to_mebi(v['resources']['recommendations']['requests']['memory']).strip("Mi")
-                diff_memory = rec_memory - cur_memory
-            except:
-                rec_cpu = 0
-                cur_cpu = 0
-                diff_cpu = 0
-                rec_mem = 0
-                cur_mem = 0
-                diff_memory = 0
+            rec_cpu = 0
+            cur_cpu = 0
+            diff_cpu = 0
+            rec_mem = 0
+            cur_mem = 0
+            diff_memory = 0
+            cur_cpu = v['resources']['current']['requests']['cpu'].strip('m')
+            rec_cpu = v['resources']['recommendations']['requests']['cpu'].strip('m')
+            diff_cpu = int(rec_cpu) - int(cur_cpu)
+            cur_mem = convert_to_mebi(v['resources']['current']['requests']['memory']).strip('Mi')
+            rec_mem = convert_to_mebi(v['resources']['recommendations']['requests']['memory']).strip('Mi')
+            diff_memory = int(rec_mem) - int(cur_mem)
 
             outp.write(f"{namespace},{k},{cur_cpu},{rec_cpu},{diff_cpu},{cur_mem},{rec_mem},{diff_memory}\n")
 
