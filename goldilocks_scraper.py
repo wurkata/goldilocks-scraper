@@ -661,6 +661,11 @@ def export_csv(filename: str, namespace, resources: dict):
             rec_mem = 0
             cur_mem = 0
             diff_memory = 0
+
+            if not all(kee in v['resources'] for kee in ("current", "recommendations")):
+                print(f"Missing resources requirements from SOA {k} - continue...")
+                continue
+
             cur_cpu = v['resources']['current']['requests']['cpu'].strip('m')
             rec_cpu = v['resources']['recommendations']['requests']['cpu'].strip('m')
             diff_cpu = int(rec_cpu) - int(cur_cpu)
@@ -669,6 +674,8 @@ def export_csv(filename: str, namespace, resources: dict):
             diff_memory = int(rec_mem) - int(cur_mem)
 
             outp.write(f"{namespace},{k},{cur_cpu},{rec_cpu},{diff_cpu},{cur_mem},{rec_mem},{diff_memory}\n")
+
+        print(f"Write to {outp.name} completed successfully.")
 
 
 
